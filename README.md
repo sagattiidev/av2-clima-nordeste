@@ -1,16 +1,14 @@
-# AV2 — Clima do Nordeste (Miqueias Souza dos Santos)
+# Clima do Nordeste
 
-**Aluno:** Miqueias Souza dos Santos  
-**Entrega:** AV2 individual — modificação de portal de dados abertos  
-**Origem:** projeto de referência `aiven-devops-pipeline-main` fornecido na disciplina.
+AV2 de Miqueias Souza dos Santos, baseada no projeto de DevOps fornecido na disciplina.
 
-## 1. O que foi modificado
+## Painel
 
-O portal de **indicadores econômicos do Banco Central** foi transformado em um painel de **clima de cinco capitais nordestinas**, usando a API pública da **Open-Meteo**: Salvador, Recife, Fortaleza, Natal e São Luís. O painel contém cartões de temperatura e chuva, gráfico de linhas/barras, seleção de cidade e comparativo entre capitais. Os dados são armazenados em PostgreSQL e atualizados por cache. São estimativas meteorológicas de modelo, não observações certificadas de estações.
+O painel usa dados da Open-Meteo para mostrar temperaturas máximas e mínimas e volume de chuva em Salvador, Recife, Fortaleza, Natal e São Luís. Os dados ficam em cache no PostgreSQL. A interface permite selecionar uma cidade e comparar os indicadores entre as capitais.
 
-Conforme a **Etapa 10 do roteiro**, também há: total de acessos, gráfico Chart.js de **visitas por minuto**, tabela de **últimos acessos** e atualização dessas métricas **a cada 10 segundos**, consultando a tabela `visits` do PostgreSQL. A atualização por polling não cria visitas artificiais.
+O painel também mostra o total de visitas, um gráfico de acessos por minuto e uma tabela com os últimos acessos. Essas métricas são consultadas a cada 10 segundos.
 
-**Fonte de dados:** https://open-meteo.com/en/docs · API `https://api.open-meteo.com/v1/forecast`; variáveis `temperature_2m_max`, `temperature_2m_min`, `precipitation_sum`. Atribuição: Open-Meteo, sujeito às respectivas condições de uso.
+[Documentação da Open-Meteo](https://open-meteo.com/en/docs)
 
 ## 2. Estrutura principal
 
@@ -22,7 +20,7 @@ app/
   clima_client.py            # Open-Meteo + consultas ao PostgreSQL
   templates/dashboard.html  # visual, gráficos, tabela
   static/style.css
-  tests/                     # 21 casos unitários/rotas (exigem dependências)
+  tests/                     # 22 testes de funções e rotas
   requirements.txt
   .env.example
 terraform/                  # provisionamento Aiven PostgreSQL
@@ -46,10 +44,8 @@ RELATORIO_TECNICO_MIQUEIAS.pdf
 6. **Render:** New → Web Service → Git Provider, escolha o repositório. **Root Directory = `app`**, Runtime = **Docker**, plano **Free**, Auto-Deploy **Off**. O arquivo `render.yaml` também permite importar essa configuração como Blueprint. O Dockerfile está dentro de `app/`, alinhado ao guia.
 7. **Ambiente:** no Render, configure **`AIVEN_DB_URL`** com a Service URI Aiven e **`PORT=8080`**. Inicie o deploy e copie a URL pública; configure `APP_HEALTHCHECK_URL` como **URL base sem `/healthz`**, exemplo `https://nome.onrender.com`.
 8. **Deploy Hook:** em Render → Settings → Deploy Hook, copie e preencha `RENDER_DEPLOY_HOOK_URL` no GitHub.
-9. **CI/CD:** um commit em `main` alterando `app/` ou `.github/workflows/ci-cd.yml` dispara **test → build-and-push → deploy**. Acompanhe os três jobs no Actions. As etapas do Render aguardam os dois secrets. Para habilitar o refresh agendado após a publicação, defina a variável `ENABLE_RENDER_REFRESH=true` no Actions. O deploy checa `GET /healthz` no Render; espere pelo serviço sair de cold start. Verifique se os jobs passaram, não presuma apenas pelo código.
-10. **Validar:** acesse a URL pública algumas vezes. Confira os cinco indicadores climáticos, **total de visitas**, **gráfico por minuto**, **últimos acessos** e atualização a cada 10 segundos. Confirme `/healthz` respondendo `{"status":"ok"}` apenas com banco acessível. Tire prints reais e registre os eventos.
-
-**Observação:** as etapas 1–10 que exigem conta externa não podem ser comprovadas apenas pelo código. Registre somente o que você executou nas contas.
+9. **CI/CD:** um commit em `main` alterando `app/` ou `.github/workflows/ci-cd.yml` dispara **test → build-and-push → deploy**. Acompanhe os três jobs no Actions. As etapas do Render aguardam os dois secrets. Para habilitar o refresh agendado após a publicação, defina a variável `ENABLE_RENDER_REFRESH=true` no Actions. O deploy checa `GET /healthz` no Render; espere pelo serviço sair de cold start.
+10. **Validar:** acesse a URL pública algumas vezes. Confira os cinco indicadores climáticos, **total de visitas**, **gráfico por minuto**, **últimos acessos** e atualização a cada 10 segundos. Confirme `/healthz` respondendo `{"status":"ok"}` apenas com banco acessível.
 
 ## 4. Como testar no VS Code antes da publicação
 
@@ -87,13 +83,12 @@ As consultas ao banco usam parâmetros SQL; a fonte Open-Meteo é acessada via H
 
 ## 6. Cuidados e limitações
 
-- Consulte o registro de eventos e os arquivos em `evidencias/` para ver o que foi verificado.
+- Os resultados dos testes e da publicação no GitHub estão em `evidencias/` e no registro de eventos.
 - O arquivo `CHECKLIST_DO_LABORATORIO.md` indica cada evidência a anexar.
 - Não coloque tokens, senhas, Service URI ou chaves nos prints ou no ZIP.
 - Serviços Free variam por conta; Render pode passar por cold start. Aiven e Render mudam os planos; confira antes de criar recursos.
 - Kafka e Grafana foram preservados como **opcionais** e não são ativados automaticamente.
 - A API Open-Meteo pode falhar ou demorar; nesse caso o app tenta usar o que já está no banco.
-- O documento `REGISTRO_DE_EVENTOS.md` descreve alterações no código e tem campos para as ações que só você pode comprovar.
 
 ## 7. Créditos
 
