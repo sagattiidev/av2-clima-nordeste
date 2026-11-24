@@ -1,5 +1,5 @@
-Cole aqui prints REAIS da execução das 10 etapas Aiven/GitHub/Render do laboratório.
-NÃO inclua senhas, API tokens, Service URI ou URLs de deploy hook legíveis.
-Os prints não foram fabricados nem coletados neste ambiente.
-Roteiro de nomes: 01-aiven-projeto.png, 02-token-criado.png, ... , 10-dashboard.png.
-Confira também CHECKLIST_DO_LABORATORIO.md e REGISTRO_DE_EVENTOS.md.
+Evidências da AV2
+
+VALIDACAO_LOCAL_INICIAL.txt registra a primeira execução dos testes.
+VALIDACAO_LOCAL.txt registra os testes após a correção, o lint e as checagens de sintaxe.
+VERIFICACAO_GITHUB.md registra a publicação do código e dos workflows.
