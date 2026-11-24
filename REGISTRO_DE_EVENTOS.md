@@ -31,8 +31,9 @@
 
 - Às 19h54, o [painel no Render](https://av2-clima-nordeste.onrender.com) e `/healthz` responderam HTTP 200. O health check retornou `{"status":"ok"}`; `/api/visitas` retornou o total, os acessos recentes e a contagem por minuto. A consulta de clima para Recife respondeu HTTP 200 com histórico vazio. O teste de atualização manual retornou HTTP 502 porque a Open-Meteo respondeu HTTP 429 (Too Many Requests) à consulta feita pelo Render.
 
+- O [CI/CD completo](https://github.com/sagattiidev/av2-clima-nordeste/actions/runs/45506067037) aprovou testes, lint e publicação da imagem no GHCR. O job do Render executou o deploy hook e passou no health check (`{"status":"ok"}`). Uma nova consulta à API de clima para Recife ainda retornou histórico vazio.
+
 ## Pendências
 
-- Configurar os secrets de deploy do GitHub e validar o hook do Render.
 - Validar a carga de dados climáticos após a Open-Meteo voltar a aceitar as requisições do Render.
 
