@@ -25,8 +25,10 @@
 
 - Às 19h34, o [apply](https://github.com/sagattiidev/av2-clima-nordeste/actions/runs/45502214039) passou na validação e no planejamento, mas falhou na criação do PostgreSQL. A Aiven retornou `404 ServiceCreate`: o plano `free-1-1gb` está indisponível em `google-southamerica-east1`. O serviço não foi criado nessa execução.
 
+- Às 19h37, o serviço `dashboard-pg` apareceu no console da Aiven no projeto `av2-miqueias`, após criação manual no plano Free da América do Norte. O status estava `Building` (9%). A conexão com o banco segue pendente de validação.
+
 ## Pendências
 
-- Provisionamento do PostgreSQL Free e configuração dos secrets do Render.
-- Provisionamento do PostgreSQL, deploy e verificação da URL pública e das métricas de acesso.
+- Aguardar `Running` no PostgreSQL Free e configurar os secrets do Render.
+- Deploy e verificação da URL pública e das métricas de acesso.
 
