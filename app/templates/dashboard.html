@@ -24,7 +24,10 @@
   </header>
 
   {% set c = data.cidade %}
-  {% if c.tmax is none %}
+  {% if c.historico_local %}
+  <p class="notice">Histórico da Open-Meteo até {{ c.data }}. O painel usa essa série
+    enquanto aguarda a primeira atualização do banco.</p>
+  {% elif c.tmax is none %}
   <p class="notice">
     Ainda não há dados de {{ c.nome }} no banco. A busca na Open-Meteo pode ter falhado;
     tente de novo em instantes ou acione <code>POST /api/refresh</code>.

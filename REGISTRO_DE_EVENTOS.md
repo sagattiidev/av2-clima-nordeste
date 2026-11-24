@@ -33,6 +33,8 @@
 
 - O [CI/CD completo](https://github.com/sagattiidev/av2-clima-nordeste/actions/runs/45506067037) aprovou testes, lint e publicação da imagem no GHCR. O job do Render executou o deploy hook e passou no health check (`{"status":"ok"}`). Uma nova consulta à API de clima para Recife ainda retornou histórico vazio.
 
+- Após o HTTP 429, foi incluída uma série real da Open-Meteo com 30 dias por capital (25/10 a 23/11/2026). O painel identifica a série local enquanto o banco está vazio. Os [testes locais](evidencias/VALIDACAO_HISTORICO_CLIMATICO.txt) confirmaram a leitura nas cinco capitais e a prioridade dos registros do PostgreSQL.
+
 ## Pendências
 
 - Validar a carga de dados climáticos após a Open-Meteo voltar a aceitar as requisições do Render.

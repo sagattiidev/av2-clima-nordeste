@@ -8,6 +8,8 @@ O painel usa dados da Open-Meteo para mostrar temperaturas máximas e mínimas e
 
 O painel também mostra o total de visitas, um gráfico de acessos por minuto e uma tabela com os últimos acessos. Essas métricas são consultadas a cada 10 segundos.
 
+Quando o PostgreSQL ainda não tem dados de uma cidade, o painel usa a série da Open-Meteo de 25/10 a 23/11/2026 incluída no projeto e exibe a data de referência. Assim que a primeira atualização chega ao banco, o painel passa a usar os registros do PostgreSQL. Se a Open-Meteo retornar HTTP 429, as consultas automáticas aguardam cinco minutos antes de tentar novamente.
+
 [Documentação da Open-Meteo](https://open-meteo.com/en/docs)
 
 ## 2. Estrutura principal

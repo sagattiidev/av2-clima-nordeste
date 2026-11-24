@@ -1,0 +1,10 @@
+......................                                                   [100%]
+22 passed in 0.17s
+Flake8: OK
+py_compile: OK
+salvador: 30 dias, 2026-10-25 a 2026-11-23
+recife: 30 dias, 2026-10-25 a 2026-11-23
+fortaleza: 30 dias, 2026-10-25 a 2026-11-23
+natal: 30 dias, 2026-10-25 a 2026-11-23
+sao-luis: 30 dias, 2026-10-25 a 2026-11-23
+Histórico do PostgreSQL tem prioridade.

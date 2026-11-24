@@ -29,6 +29,8 @@ app = Flask(__name__)
 
 CACHE_HOURS = int(os.environ.get("CACHE_HOURS", 6))
 START_TIME = time.time()
+PAUSA_OPEN_METEO_SEGUNDOS = 300
+_proxima_consulta_open_meteo = 0.0
 DIA_CHUVOSO_MM = 1.0  # a partir de 1 mm no dia contamos como "dia com chuva"
 
 # Garante que as tabelas existam assim que o módulo é carregado — necessário
@@ -54,12 +56,20 @@ def refresh_stale_cities():
     """Só busca na Open-Meteo se ninguém (nem o consumer do Kafka) já
     atualizou a cidade recentemente. Se a API estiver fora do ar, o app não
     quebra: segue servindo o que já está no banco."""
+    global _proxima_consulta_open_meteo
+    if time.monotonic() < _proxima_consulta_open_meteo:
+        return
+
     for city_key in clima.CIDADES:
         if is_cache_stale(city_key):
             try:
                 refresh_city(city_key)
             except (requests.RequestException, ValueError, KeyError) as exc:
                 app.logger.warning("Falha ao atualizar %s: %s", city_key, exc)
+                response = getattr(exc, "response", None)
+                if response is not None and response.status_code == 429:
+                    _proxima_consulta_open_meteo = time.monotonic() + PAUSA_OPEN_METEO_SEGUNDOS
+                    return
 
 
 def _valor(dia, variavel):
@@ -94,6 +104,7 @@ def resumir_cidade(city_key, historico):
         "maior_tmax": max(maximas) if maximas else None,
         "menor_tmin": min(minimas) if minimas else None,
         "dias": len(historico),
+        "historico_local": bool(ultimo and ultimo.get("historico_local")),
     }
 
 

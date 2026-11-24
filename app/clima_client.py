@@ -9,8 +9,11 @@ modelos meteorológicos (reanálise), não de uma estação física específica.
 """
 
 import datetime
+import json
 import os
 from contextlib import contextmanager
+from functools import lru_cache
+from pathlib import Path
 
 import psycopg2
 import requests
@@ -212,8 +215,15 @@ def pivot_rows(rows):
     return [{"ref_date": d, "values": por_dia[d]} for d in sorted(por_dia)]
 
 
+@lru_cache(maxsize=1)
+def _historico_inicial():
+    """Leitura da série histórica distribuída com a aplicação."""
+    arquivo = Path(__file__).with_name("historico_open_meteo.json")
+    return json.loads(arquivo.read_text(encoding="utf-8"))["cities"]
+
+
 def get_history(city_key, days=DIAS_HISTORICO):
-    """Últimos `days` dias gravados de uma cidade."""
+    """Lê o histórico do banco e usa a série local quando ele está vazio."""
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -227,7 +237,13 @@ def get_history(city_key, days=DIAS_HISTORICO):
                 (city_key, days * len(VARIAVEIS)),
             )
             rows = cur.fetchall()
-    return pivot_rows(rows)[-days:]
+    if rows:
+        return pivot_rows(rows)[-days:]
+    dados = _historico_inicial().get(city_key)
+    if dados is None:
+        return []
+    historico = parse_openmeteo({"daily": dados}, days)
+    return [dict(dia, historico_local=True) for dia in historico]
 
 
 def log_visit(path):
