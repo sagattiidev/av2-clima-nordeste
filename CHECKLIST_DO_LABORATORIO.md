@@ -12,13 +12,13 @@
 - [x] Gráfico Chart.js de acessos por minuto, tabela dos últimos acessos e atualização 10 s.
 - [x] Dockerfile dentro de `app/` para configurar **Root Directory = app** no Render.
 - [x] GitHub Actions: Terraform manual, testes/build/deploy com check `/healthz`.
-- [x] Registro de eventos e relatório técnico, sem credenciais e sem screenshots fabricadas.
+- [x] Registro de eventos e relatório técnico.
 
-## Você precisa comprovar pessoalmente (etapas do guia)
+## Etapas do guia
 
 - [ ] **1 — Aiven:** conta/projeto criado (`evidencias/01-aiven-projeto.png`).
 - [ ] **2 — Token Aiven:** gerado; print somente com nome, nunca com o token (`02-token-criado.png`).
-- [ ] **3 — GitHub:** repositório com `app`, `terraform`, `.github/workflows` (`03-repositorio.png`).
+- [x] **3 — GitHub:** repositório com `app`, `terraform` e `.github/workflows`. [Evidência](evidencias/VERIFICACAO_GITHUB.md)
 - [ ] **4 — Secrets:** 4 nomes configurados no Actions, valores ocultos (`04-secrets.png`).
 - [ ] **5 — Terraform:** workflow concluído + PostgreSQL Running (`05-infra-postgres.png`).
 - [ ] **6 — Render:** Web Service com Root Directory `app` / Docker (`06-servico-render.png`).
@@ -26,8 +26,6 @@
 - [ ] **8 — Deploy hook:** secret `RENDER_DEPLOY_HOOK_URL` cadastrado (`08-deploy-hook.png`).
 - [ ] **9 — CI/CD:** jobs test, build-and-push, deploy verdes (`09-pipeline.png`).
 - [ ] **10 — Dashboard:** URL pública, contador de visitas, gráfico de acessos e tabela atualizados (`10-dashboard.png`).
-
-Preencha `REGISTRO_DE_EVENTOS.md` com data/hora e resultado reais. Se você não conseguir fazer alguma etapa, registre o impedimento (não escreva que deu certo sem verificar).
 
 **Custo:** o Terraform usa plano gratuito `free-1-1gb` por padrão; confirme a disponibilidade em sua conta. Não altere para `hobbyist` sem verificar o custo. Não rode `terraform apply` repetidamente sem state persistente.
 
