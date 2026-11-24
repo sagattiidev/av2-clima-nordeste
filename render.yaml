@@ -5,8 +5,8 @@ services:
     plan: free
     branch: main
     rootDir: app
-    dockerfilePath: ./app/Dockerfile
-    dockerContext: ./app
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /healthz
     autoDeployTrigger: off
     envVars:
