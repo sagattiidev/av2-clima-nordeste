@@ -23,8 +23,10 @@
 
 - Às 19h32, o [novo plan](https://github.com/sagattiidev/av2-clima-nordeste/actions/runs/45501796199) passou. O Terraform planejou três adições (serviço PostgreSQL no plano `free-1-1gb`, banco e usuário), zero alterações e zero exclusões. O `apply` foi pulado.
 
+- Às 19h34, o [apply](https://github.com/sagattiidev/av2-clima-nordeste/actions/runs/45502214039) passou na validação e no planejamento, mas falhou na criação do PostgreSQL. A Aiven retornou `404 ServiceCreate`: o plano `free-1-1gb` está indisponível em `google-southamerica-east1`. O serviço não foi criado nessa execução.
+
 ## Pendências
 
-- Execução manual do `apply` e configuração dos secrets do Render.
+- Provisionamento do PostgreSQL Free e configuração dos secrets do Render.
 - Provisionamento do PostgreSQL, deploy e verificação da URL pública e das métricas de acesso.
 
