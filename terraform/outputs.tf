@@ -27,12 +27,6 @@ output "kafka_password" {
   sensitive = true
 }
 
-output "kafka_ca_cert" {
-  description = "Certificado CA — cole em KAFKA_CA_CERT_PEM no GitHub/Render"
-  value       = try(aiven_kafka.events[0].ca_cert, null)
-  sensitive   = true
-}
-
 output "grafana_uri" {
   description = "URL pública do Grafana provisionado (null se enable_grafana = false)"
   value       = try(aiven_grafana.dashboards[0].service_uri, null)

@@ -1,8 +1,13 @@
 name: Infra - Provisionar Aiven (Terraform)
 
-# Executar MANUALMENTE uma vez para evitar re-provisionamento automatico.
+# O apply é manual. Alterações de infraestrutura na main executam apenas o plan.
 # IMPORTANTE: GitHub runners sao efemeros; para reaplicar, configure backend de state.
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/infra.yml'
   workflow_dispatch:
     inputs:
       operation:
@@ -48,7 +53,7 @@ jobs:
         run: terraform validate
 
       - name: Conferir credenciais da Aiven
-        if: inputs.operation != 'validate'
+        if: github.event_name == 'push' || inputs.operation == 'plan' || inputs.operation == 'apply'
         run: |
           if [[ -z "$TF_VAR_aiven_api_token" || -z "$TF_VAR_aiven_project" ]]; then
             echo "::error::Cadastre AIVEN_API_TOKEN e AIVEN_PROJECT."
@@ -56,7 +61,7 @@ jobs:
           fi
 
       - name: Terraform Plan
-        if: inputs.operation != 'validate'
+        if: github.event_name == 'push' || inputs.operation == 'plan' || inputs.operation == 'apply'
         run: terraform plan -input=false -out=tfplan
 
       - name: Terraform Apply
