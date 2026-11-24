@@ -1,0 +1,19 @@
+VALIDAÇÃO LOCAL DO PACOTE (24/11/2026)
+Projeto: Clima do Nordeste — Miqueias Souza dos Santos
+
+OK: python -m compileall -q app
+OK: compilação Jinja do template app/templates/dashboard.html
+OK: renderização Jinja com dados simulados APENAS PARA VALIDAR TEMPLATE (não foi publicada)
+OK: node --check do JavaScript extraído da página renderizada
+OK: sintaxe YAML dos cinco workflows (.github/workflows)
+OK: 10 testes em app/tests/test_clima_client.py com psycopg2 simulado (ver VALIDACAO_CLIENTE.txt)
+
+NÃO EXECUTADOS NESTE AMBIENTE:
+- 11 testes de rotas Flask (Flask e psycopg2 reais indisponíveis)
+- chamada real à Open-Meteo e banco remoto Aiven
+- terraform init/validate/plan/apply (Terraform e tokens indisponíveis)
+- build Docker, GitHub Actions e deploy Render
+- evidências de contas externas e prints dos checkpoints do professor
+
+Há 21 testes definidos na pasta app/tests. Só 10 rodaram aqui; execute todos na sua máquina.
+Não interprete os 10 testes com mock como testes de infraestrutura em nuvem.

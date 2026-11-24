@@ -1,0 +1,23 @@
+name: Dados - Refresh agendado (Open-Meteo)
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  refresh:
+    if: vars.ENABLE_RENDER_REFRESH == 'true'
+    runs-on: ubuntu-latest
+    env:
+      APP_HEALTHCHECK_URL: ${{ secrets.APP_HEALTHCHECK_URL }}
+    steps:
+      - name: Disparar /api/refresh
+        run: |
+          if [[ -z "$APP_HEALTHCHECK_URL" ]]; then
+            echo "::error::Cadastre APP_HEALTHCHECK_URL para habilitar a atualização."
+            exit 1
+          fi
+          curl -fsS --max-time 90 -X POST "${APP_HEALTHCHECK_URL%/}/api/refresh"

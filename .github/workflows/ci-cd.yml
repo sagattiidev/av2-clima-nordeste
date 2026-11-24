@@ -1,0 +1,128 @@
+name: CI/CD - Dashboard App
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - ".github/workflows/ci-cd.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/**"
+      - ".github/workflows/ci-cd.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository }}/dashboard-app
+
+jobs:
+  test:
+    name: Testes e lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependências
+        working-directory: app
+        run: |
+          pip install -r requirements.txt
+          pip install flake8
+
+      - name: Lint (flake8)
+        working-directory: app
+        run: flake8 . --max-line-length=100 --extend-ignore=E501,W503
+
+      - name: Testes unitários (pytest)
+        working-directory: app
+        run: |
+          pip install pytest
+          python -m pytest -q tests
+        # Os testes não usam rede nem banco: a Open-Meteo e o Postgres são
+        # substituídos por dados falsos (ver app/tests/).
+
+      - name: Checagem de sintaxe (sanidade da app)
+        working-directory: app
+        run: python -m py_compile app.py clima_client.py producer.py consumer.py kafka_common.py
+        # Nota: usamos py_compile (só verifica sintaxe) em vez de
+        # `import app`, porque app.py chama clima.init_db() assim que o
+        # módulo é carregado (necessário para funcionar sob gunicorn em
+        # produção — ver README, Troubleshooting item 3). Um import de
+        # verdade aqui exigiria AIVEN_DB_URL configurada no runner do CI
+        # e uma conexão de rede até o Postgres, o que foge do escopo de
+        # um teste rápido de lint/sintaxe.
+
+  build-and-push:
+    name: Build + push da imagem Docker
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login no GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build e push
+        uses: docker/build-push-action@v5
+        with:
+          context: ./app
+          file: ./app/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+  deploy:
+    name: Deploy (Render)
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    env:
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+      APP_HEALTHCHECK_URL: ${{ secrets.APP_HEALTHCHECK_URL }}
+    steps:
+      - name: Verificar configuração do Render
+        id: render
+        run: |
+          if [[ -z "$RENDER_DEPLOY_HOOK_URL" && -z "$APP_HEALTHCHECK_URL" ]]; then
+            echo "::notice::Render pendente: configure os dois secrets para habilitar o deploy."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          elif [[ -z "$RENDER_DEPLOY_HOOK_URL" || -z "$APP_HEALTHCHECK_URL" ]]; then
+            echo "::error::Configuração incompleta do Render. Cadastre os dois secrets."
+            exit 1
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Disparar deploy hook do Render
+        if: steps.render.outputs.ready == 'true'
+        run: curl -fsS --max-time 30 -X POST "$RENDER_DEPLOY_HOOK_URL" -o /dev/null
+
+      - name: Verificar health check do serviço
+        if: steps.render.outputs.ready == 'true'
+        run: |
+          sleep 20
+          curl -fsS --retry 12 --retry-delay 15 --retry-all-errors --max-time 25 \
+            "${APP_HEALTHCHECK_URL%/}/healthz"

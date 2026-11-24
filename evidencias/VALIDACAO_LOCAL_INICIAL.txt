@@ -1,0 +1,23 @@
+2026-11-24T19:14:31-03:00
+Python 3.12.14
+$ python -m pytest -q tests
+........F............                                                    [100%]
+=================================== FAILURES ===================================
+______________ test_dashboard_mostra_grafico_e_tabela_de_acessos _______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f9aae942600>
+
+    def test_dashboard_mostra_grafico_e_tabela_de_acessos(monkeypatch):
+        modulo = carregar_app(monkeypatch)
+        html = modulo.app.test_client().get("/").get_data(as_text=True)
+        assert 'id="visitsChart"' in html
+        assert "Visitas por minuto" in html
+        assert "Últimos acessos" in html
+        assert "24/11/2026 21:31:00" in html
+>       assert "POST /api/refresh" in html
+E       assert 'POST /api/refresh' in '<!DOCTYPE html>\n<html lang="pt-BR">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device...tInterval(atualizarAcessos, 10000);\n\n    setTimeout(() => location.reload(), 300000);\n  </script>\n</body>\n</html>'
+
+tests/test_app.py:142: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_app.py::test_dashboard_mostra_grafico_e_tabela_de_acessos
+1 failed, 20 passed in 0.21s

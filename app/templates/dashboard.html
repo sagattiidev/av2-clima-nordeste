@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clima do Nordeste — Dados abertos (Open-Meteo)</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>🌦️ Clima do Nordeste</h1>
+    <p class="subtitle">
+      Temperatura e chuva diárias das capitais nordestinas · dados abertos da Open-Meteo ·
+      cache renovado a cada {{ data.cache_hours }}h · persistidos em PostgreSQL gerenciado pela Aiven.io
+    </p>
+    <nav class="cities" aria-label="Escolha a cidade">
+      {% for c in data.cidades %}
+      <a href="{{ url_for('dashboard', cidade=c.key) }}"
+         class="{{ 'active' if c.key == data.cidade.key else '' }}"
+         {% if c.key == data.cidade.key %}aria-current="page"{% endif %}>{{ c.nome }}</a>
+      {% endfor %}
+    </nav>
+  </header>
+
+  {% set c = data.cidade %}
+  {% if c.tmax is none %}
+  <p class="notice">
+    Ainda não há dados de {{ c.nome }} no banco. A busca na Open-Meteo pode ter falhado;
+    tente de novo em instantes ou acione <code>POST /api/refresh</code>.
+  </p>
+  {% endif %}
+
+  <section class="cards">
+    <div class="card">
+      <span class="label">Temperatura máxima · {{ c.nome }}</span>
+      <span class="value">{{ c.tmax if c.tmax is not none else "—" }}<span class="unit">°C</span></span>
+      <span class="meta">
+        {% if c.data %}ref. {{ c.data }}{% else %}sem dados ainda{% endif %}
+        {% if c.delta_tmax is not none %}
+          · <span class="{{ 'up' if c.delta_tmax > 0 else ('down' if c.delta_tmax < 0 else '') }}">
+            {{ "%+.1f"|format(c.delta_tmax) }} °C vs. dia anterior
+          </span>
+        {% endif %}
+      </span>
+    </div>
+    <div class="card">
+      <span class="label">Temperatura mínima</span>
+      <span class="value cool">{{ c.tmin if c.tmin is not none else "—" }}<span class="unit">°C</span></span>
+      <span class="meta">menor mínima em {{ c.dias }} dias: {{ c.menor_tmin if c.menor_tmin is not none else "—" }} °C</span>
+    </div>
+    <div class="card">
+      <span class="label">Chuva no dia</span>
+      <span class="value rain">{{ c.chuva_dia if c.chuva_dia is not none else "—" }}<span class="unit">mm</span></span>
+      <span class="meta">últimos 7 dias: {{ c.chuva_7d }} mm</span>
+    </div>
+    <div class="card">
+      <span class="label">Chuva em {{ c.dias }} dias</span>
+      <span class="value rain">{{ c.chuva_30d }}<span class="unit">mm</span></span>
+      <span class="meta">{{ c.dias_chuvosos }} dia(s) com chuva (≥ 1 mm)</span>
+    </div>
+    <div class="card muted">
+      <span class="label">Acessos ao painel</span>
+      <span class="value">{{ data.total_visits }}</span>
+      <span class="meta">uptime: {{ data.uptime_seconds }}s</span>
+    </div>
+  </section>
+
+  <section class="chart-container">
+    <h2>{{ c.nome }} — últimos {{ data.labels|length }} dias</h2>
+    <canvas id="climaChart" height="90"></canvas>
+  </section>
+
+  <section class="table-container">
+    <h2>Comparativo entre capitais</h2>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Cidade</th><th>Máx. (°C)</th><th>Mín. (°C)</th>
+            <th>Chuva 7 dias (mm)</th><th>Chuva 30 dias (mm)</th><th>Referência</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in data.ranking %}
+          <tr class="{{ 'current' if r.key == c.key else '' }}">
+            <td>
+              <a href="{{ url_for('dashboard', cidade=r.key) }}">{{ r.nome }}</a>
+              {% if r.key == data.mais_quente %}<span class="badge hot">mais quente</span>{% endif %}
+              {% if r.key == data.mais_chuvosa %}<span class="badge wet">mais chuvosa</span>{% endif %}
+            </td>
+            <td>{{ r.tmax if r.tmax is not none else "—" }}</td>
+            <td>{{ r.tmin if r.tmin is not none else "—" }}</td>
+            <td>{{ r.chuva_7d }}</td>
+            <td>{{ r.chuva_30d }}</td>
+            <td>{{ r.data or "—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="note">
+      "Mais quente" compara a temperatura máxima do dia de referência; "mais chuvosa" compara a chuva acumulada no período.
+      Os valores dos dias passados vêm de modelos meteorológicos, não de uma estação física.
+    </p>
+  </section>
+
+  <section class="access-section" aria-labelledby="acessos-titulo">
+    <h2 id="acessos-titulo">Monitoramento de acessos — PostgreSQL Aiven</h2>
+    <p class="note">Total de visitas: <strong id="visitsTotal">{{ data.total_visits }}</strong>. Registros originados da tabela
+      <code>visits</code>, com horários exibidos em UTC. O gráfico apresenta acessos por minuto na última hora.</p>
+    <div class="access-grid">
+      <div class="chart-container traffic">
+        <h3>Visitas por minuto (últimos 60 min)</h3>
+        <canvas id="visitsChart" height="150"></canvas>
+      </div>
+      <div class="table-container recent">
+        <h3>Últimos acessos</h3>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Horário (UTC)</th><th>Rota</th></tr></thead>
+            <tbody id="recentVisitsBody">
+              {% for v in data.recent_visits %}
+              <tr><td>{{ v.data_hora_utc }}</td><td><code>{{ v.rota }}</code></td></tr>
+              {% else %}
+              <tr><td colspan="2">Ainda não há visitas registradas.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <small>
+      Acessos atualizados a cada 10 s · Dados climáticos atualizados na recarga · Fonte:
+      <a href="https://open-meteo.com/" target="_blank" rel="noopener">open-meteo.com</a>
+      · <a href="{{ url_for('api_clima', cidade=c.key) }}">/api/clima</a> · <a href="/healthz">/healthz</a>
+    </small>
+  </footer>
+
+  <script>
+    const d = {{ data | tojson }};
+    new Chart(document.getElementById('climaChart'), {
+      data: {
+        labels: d.labels,
+        datasets: [
+          { type: 'bar', label: 'Chuva (mm)', data: d.chuva, yAxisID: 'y1',
+            backgroundColor: 'rgba(56, 189, 248, 0.45)', borderColor: '#38bdf8', borderWidth: 1 },
+          { type: 'line', label: 'Máxima (°C)', data: d.tmax, yAxisID: 'y',
+            borderColor: '#fbbf24', backgroundColor: '#fbbf24', tension: 0.3, spanGaps: true },
+          { type: 'line', label: 'Mínima (°C)', data: d.tmin, yAxisID: 'y',
+            borderColor: '#2dd4bf', backgroundColor: '#2dd4bf', tension: 0.3, spanGaps: true }
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { position: 'bottom', labels: { color: '#c9d6df' } } },
+        scales: {
+          x: { ticks: { color: '#8aa0ad' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+          y: { position: 'left', title: { display: true, text: '°C', color: '#8aa0ad' },
+               ticks: { color: '#8aa0ad' }, grid: { color: 'rgba(255,255,255,0.07)' } },
+          y1: { position: 'right', beginAtZero: true, title: { display: true, text: 'mm', color: '#8aa0ad' },
+                ticks: { color: '#8aa0ad' }, grid: { drawOnChartArea: false } }
+        }
+      }
+    });
+
+    const visitsChart = new Chart(document.getElementById('visitsChart'), {
+      type: 'line',
+      data: {
+        labels: d.visits_per_minute.map(v => v.minuto),
+        datasets: [{ label: 'Acessos/min', data: d.visits_per_minute.map(v => v.total),
+          borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,0.16)',
+          tension: 0.2, pointRadius: 3, fill: true }]
+      },
+      options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true, ticks: { precision: 0, color: '#8aa0ad' } },
+                  x: { ticks: { color: '#8aa0ad' } } },
+        plugins: { legend: { labels: { color: '#c9d6df' } } }
+      }
+    });
+
+    async function atualizarAcessos() {
+      try {
+        const response = await fetch('{{ url_for("api_visitas") }}', { cache: 'no-store' });
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const visitas = await response.json();
+        document.getElementById('visitsTotal').textContent = visitas.total_visits;
+        visitsChart.data.labels = visitas.visits_per_minute.map(v => v.minuto);
+        visitsChart.data.datasets[0].data = visitas.visits_per_minute.map(v => v.total);
+        visitsChart.update('none');
+
+        const tbody = document.getElementById('recentVisitsBody');
+        tbody.replaceChildren();
+        if (!visitas.recent_visits.length) {
+          const tr = document.createElement('tr');
+          const td = document.createElement('td');
+          td.colSpan = 2;
+          td.textContent = 'Ainda não há visitas registradas.';
+          tr.appendChild(td);
+          tbody.appendChild(tr);
+        } else {
+          for (const v of visitas.recent_visits) {
+            const tr = document.createElement('tr');
+            const tdData = document.createElement('td');
+            tdData.textContent = v.data_hora_utc;
+            const tdRota = document.createElement('td');
+            const code = document.createElement('code');
+            code.textContent = v.rota;
+            tdRota.appendChild(code);
+            tr.append(tdData, tdRota);
+            tbody.appendChild(tr);
+          }
+        }
+      } catch (error) {
+        console.warn('Falha na atualização das visitas:', error);
+      }
+    }
+    setInterval(atualizarAcessos, 10000);
+
+    setTimeout(() => location.reload(), 300000);
+  </script>
+</body>
+</html>

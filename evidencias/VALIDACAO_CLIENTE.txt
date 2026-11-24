@@ -1,0 +1,4 @@
+TESTES DE CLIENTE (DEPENDENCIA PSYCOPG2 SIMULADA):
+..........                                                               [100%]
+10 passed in 0.05s
+RETORNO_PYTEST= 0

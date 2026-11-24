@@ -1,0 +1,96 @@
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: #06141b;
+  color: #dbe7ee;
+  margin: 0;
+  padding: 2rem;
+}
+a { color: #7dd3fc; }
+header h1 { margin-bottom: 0.2rem; }
+.subtitle { color: #8aa0ad; margin-top: 0; max-width: 70ch; line-height: 1.5; }
+
+.cities { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+.cities a {
+  padding: 0.45rem 0.9rem;
+  border: 1px solid #1f3d4d;
+  border-radius: 999px;
+  color: #b6c8d3;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.cities a:hover { border-color: #fbbf24; color: #fff; }
+.cities a.active { background: #fbbf24; border-color: #fbbf24; color: #1a1300; font-weight: 700; }
+
+.notice {
+  background: #2a2008;
+  border: 1px solid #7a5b10;
+  color: #fde68a;
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+}
+
+.cards { display: flex; gap: 1rem; margin: 1.5rem 0; flex-wrap: wrap; }
+.card {
+  background: #0d2530;
+  border: 1px solid #1f3d4d;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  min-width: 190px;
+  flex: 1 1 190px;
+  display: flex;
+  flex-direction: column;
+}
+.card .label { color: #8aa0ad; font-size: 0.85rem; }
+.card .value { font-size: 1.9rem; font-weight: 700; color: #fbbf24; }
+.card .value.cool { color: #2dd4bf; }
+.card .value.rain { color: #38bdf8; }
+.card .unit { font-size: 1rem; font-weight: 500; color: #8aa0ad; margin-left: 0.3rem; }
+.card .meta { font-size: 0.8rem; color: #6c8594; margin-top: 0.3rem; }
+.card.muted .value { color: #cbd5e1; }
+.up { color: #f87171; }
+.down { color: #4ade80; }
+
+.chart-container, .table-container {
+  background: #0d2530;
+  border: 1px solid #1f3d4d;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.chart-container h2, .table-container h2 { margin-top: 0; font-size: 1.1rem; }
+
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 560px; }
+th, td { text-align: left; padding: 0.55rem 0.5rem; border-bottom: 1px solid #1f3d4d; }
+th { color: #8aa0ad; font-weight: 600; font-size: 0.85rem; }
+tr.current td { background: rgba(251, 191, 36, 0.07); }
+td a { text-decoration: none; font-weight: 600; }
+.badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.badge.hot { background: #fbbf24; color: #1a1300; }
+.badge.wet { background: #38bdf8; color: #04202e; }
+.note { color: #6c8594; font-size: 0.8rem; margin-bottom: 0; }
+
+footer { color: #6c8594; text-align: center; margin-top: 2rem; }
+
+@media (max-width: 600px) {
+  body { padding: 1rem; }
+  .card .value { font-size: 1.6rem; }
+}
+
+
+/* Etapa 10: monitoramento de visitas persistidas no Aiven */
+.access-section { margin-top: 26px; }
+.access-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(280px, 1fr); gap: 20px; }
+.access-grid .chart-container, .access-grid .table-container { margin: 0; min-width: 0; }
+.access-grid h3 { margin-top: 0; font-size: 1rem; }
+.access-section .notice { padding: 14px; }
+.access-section code { white-space: nowrap; }
+@media (max-width: 850px) { .access-grid { grid-template-columns: 1fr; } }

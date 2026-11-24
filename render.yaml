@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: av2-clima-nordeste
+    runtime: docker
+    plan: free
+    branch: main
+    rootDir: app
+    dockerfilePath: ./app/Dockerfile
+    dockerContext: ./app
+    healthCheckPath: /healthz
+    autoDeployTrigger: off
+    envVars:
+      - key: AIVEN_DB_URL
+        sync: false
+      - key: PORT
+        value: "8080"

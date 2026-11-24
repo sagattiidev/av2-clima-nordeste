@@ -1,0 +1,64 @@
+name: Infra - Provisionar Aiven (Terraform)
+
+# Executar MANUALMENTE uma vez para evitar re-provisionamento automatico.
+# IMPORTANTE: GitHub runners sao efemeros; para reaplicar, configure backend de state.
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: "validate verifica o código, plan consulta Aiven, apply cria o PostgreSQL gratuito"
+        type: choice
+        default: validate
+        options: [validate, plan, apply]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aiven-terraform
+  cancel-in-progress: false
+
+env:
+  TF_VAR_aiven_api_token: ${{ secrets.AIVEN_API_TOKEN }}
+  TF_VAR_aiven_project: ${{ secrets.AIVEN_PROJECT }}
+  TF_VAR_pg_plan: free-1-1gb
+  TF_VAR_enable_kafka: "false"
+  TF_VAR_enable_grafana: "false"
+
+jobs:
+  terraform:
+    name: Terraform validate/plan/apply
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.5"
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Conferir credenciais da Aiven
+        if: inputs.operation != 'validate'
+        run: |
+          if [[ -z "$TF_VAR_aiven_api_token" || -z "$TF_VAR_aiven_project" ]]; then
+            echo "::error::Cadastre AIVEN_API_TOKEN e AIVEN_PROJECT."
+            exit 1
+          fi
+
+      - name: Terraform Plan
+        if: inputs.operation != 'validate'
+        run: terraform plan -input=false -out=tfplan
+
+      - name: Terraform Apply
+        if: inputs.operation == 'apply' && github.ref == 'refs/heads/main'
+        run: terraform apply -input=false tfplan
