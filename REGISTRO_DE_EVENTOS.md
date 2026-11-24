@@ -35,7 +35,7 @@
 
 - Após o HTTP 429, foi incluída uma série real da Open-Meteo com 30 dias por capital (25/10 a 23/11/2026). O painel identifica a série local enquanto o banco está vazio. Os [testes locais](evidencias/VALIDACAO_HISTORICO_CLIMATICO.txt) confirmaram a leitura nas cinco capitais e a prioridade dos registros do PostgreSQL.
 
-## Pendências
+## Validação após a publicação
 
-- Validar a carga de dados climáticos após a Open-Meteo voltar a aceitar as requisições do Render.
-
+- O [CI/CD](https://github.com/sagattiidev/av2-clima-nordeste/actions/runs/45507167491) passou em testes, build e deploy. Na URL pública, `/healthz` respondeu HTTP 200 com `status: ok`. As cinco capitais responderam HTTP 200 com 30 dias de histórico da série local. O painel de Recife mostrou a data de referência e identificou a origem da série.
+- A primeira atualização automática do histórico no PostgreSQL segue sem confirmação. O painel exibiu a série local na verificação acima.
