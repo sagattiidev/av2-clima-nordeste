@@ -29,10 +29,10 @@
 
 - Às 19h41, o console da Aiven mostrou `dashboard-pg` com status `Running` e a mensagem `Your service is ready`. Falta testar a conexão a partir do Render.
 
-- Às 19h54, o [painel no Render](https://av2-clima-nordeste.onrender.com) e `/healthz` responderam HTTP 200. O health check retornou `{"status":"ok"}`; `/api/visitas` retornou o total, os acessos recentes e a contagem por minuto. A consulta de clima para Recife respondeu HTTP 200 com histórico vazio.
+- Às 19h54, o [painel no Render](https://av2-clima-nordeste.onrender.com) e `/healthz` responderam HTTP 200. O health check retornou `{"status":"ok"}`; `/api/visitas` retornou o total, os acessos recentes e a contagem por minuto. A consulta de clima para Recife respondeu HTTP 200 com histórico vazio. O teste de atualização manual retornou HTTP 502 porque a Open-Meteo respondeu HTTP 429 (Too Many Requests) à consulta feita pelo Render.
 
 ## Pendências
 
 - Configurar os secrets de deploy do GitHub e validar o hook do Render.
-- Investigar o histórico climático vazio no Render.
+- Validar a carga de dados climáticos após a Open-Meteo voltar a aceitar as requisições do Render.
 
