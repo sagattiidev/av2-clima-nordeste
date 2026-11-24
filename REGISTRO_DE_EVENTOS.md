@@ -27,8 +27,10 @@
 
 - Às 19h37, o serviço `dashboard-pg` apareceu no console da Aiven no projeto `av2-miqueias`, após criação manual no plano Free da América do Norte. O status estava `Building` (9%). A conexão com o banco segue pendente de validação.
 
+- Às 19h41, o console da Aiven mostrou `dashboard-pg` com status `Running` e a mensagem `Your service is ready`. Falta testar a conexão a partir do Render.
+
 ## Pendências
 
-- Aguardar `Running` no PostgreSQL Free e configurar os secrets do Render.
+- Configurar a conexão com a Aiven no Render e os secrets de deploy do GitHub.
 - Deploy e verificação da URL pública e das métricas de acesso.
 
