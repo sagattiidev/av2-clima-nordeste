@@ -12,8 +12,12 @@
 | Publicação no GitHub | Código e workflows enviados à branch `main`. | [Verificação no GitHub](evidencias/VERIFICACAO_GITHUB.md) |
 | Configuração da Aiven e do Render | Workflow Terraform preparado para PostgreSQL Free. Blueprint do Render preparado para Docker, plano Free e verificação em `/healthz`. | [Workflow Terraform](.github/workflows/infra.yml) · [Blueprint](render.yaml) |
 
+## Secrets da Aiven
+
+Às 19h28 (Brasília), a captura das configurações do repositório mostrou `AIVEN_API_TOKEN` e `AIVEN_PROJECT` cadastrados. A validade das credenciais será verificada na execução do Terraform.
+
 ## Pendências
 
-- Aiven, Render e secrets do GitHub.
+- Execução do Terraform e configuração dos secrets do Render.
 - Provisionamento do PostgreSQL, deploy e verificação da URL pública e das métricas de acesso.
 - Confirmação da execução completa do CI/CD. O print do repositório mostra o pacote `av2-clima-nordeste/dashboard-app`. O resultado do deploy permanece pendente.
